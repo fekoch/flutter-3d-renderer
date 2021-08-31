@@ -10,7 +10,7 @@ class ViewPanel extends StatefulWidget {
 }
 
 class _ViewPanelState extends State<ViewPanel> {
-  List<GraphicsObject> graphicObjects = [];
+  List<Point> graphicObjects = [Point.xy(10, 10),Point.xy(-5, -20)];
   var _random = Math.Random();
 
   @override
@@ -44,7 +44,8 @@ class _ViewPanelState extends State<ViewPanel> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("Bottom"),
+                      ElevatedButton(onPressed: ()=> rotatePoints(15), child: Text("Rotate Left")),
+                      ElevatedButton(onPressed: ()=> rotatePoints(-15), child: Text("Rotate Right"))
                     ],
                   ),
                 ),
@@ -64,6 +65,16 @@ class _ViewPanelState extends State<ViewPanel> {
     setState(() {
       var p = Point(x:_random.nextDouble()*100,y:_random.nextDouble()*100);
       graphicObjects.add(p);
+    });
+  }
+
+  void rotatePoints(num degree) {
+    setState(() {
+      graphicObjects.forEach((point) {
+        var v = point - Point.origin;
+        var v2 = v.rotateXY(degree);
+        point.setTo(Point.origin + v2);
+      });
     });
   }
 }

@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:developer' as Dev;
 
 import 'package:flutter/material.dart';
 
@@ -12,22 +11,18 @@ abstract class GraphicsObject {
   }
 }
 
-@immutable
 class Point with GraphicsObject {
-  final num x;
-  final num y;
-  final num z;
+  num x;
+  num y;
+  num z;
 
-  const Point({this.x: 0, this.y: 0, this.z: 0});
+  Point({this.x: 0, this.y: 0, this.z: 0});
 
-  const Point.xyz(this.x, this.y, this.z);
+  Point.xyz(this.x, this.y, this.z);
 
-  const Point.xy(this.x, this.y) : z = 0;
+  Point.xy(this.x, this.y) : z = 0;
 
-  const Point.origin()
-      : x = 0,
-        y = 0,
-        z = 0;
+  static final Point origin = Point.xyz(0,0,0);
 
   /// Adds a [Vector] to a [Point]
   Point operator +(Vector vec) =>
@@ -54,17 +49,24 @@ class Point with GraphicsObject {
   int get hashCode => x.hashCode ^ y.hashCode ^ z.hashCode;
 
   // Graphics Stuff TODO: refractor out into other class
-  static num pointSize = 1;
+  static num pointSize = 5;
 
   /// Draws this [Point] onto the [canvas]
   @override
   void draw(Canvas canvas, Size size) {
+    if (x > 100 || x < 0 || y > 100 || y < 0) return; // TODO somday revisit
     canvas.drawCircle(convertCoordinates(x, y, size), pointSize as double,
         Paint()..color = Colors.black);
   }
 
   @override
   String toString() => "($x|$y|$z)";
+
+  void setTo(Point point) {
+    this.x= point.x;
+    this.y= point.y;
+    this.z= point.z;
+  }
 
   static num Function(Point a, Point b) distanceFunction = (Point a, Point b) => (b-a).length;
 }
@@ -216,7 +218,6 @@ class Matrix {
 
     Matrix nMat = Matrix.empty(other.width, this.height);
     nMat.fillEach((row, column, value) {
-      Dev.log("Row: $row - Column: $column - Value: $value");
       var a = this.getRow(row);
       var b = other.getColumn(column).toList();
       var newVal = a.fold(
