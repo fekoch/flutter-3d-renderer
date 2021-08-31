@@ -63,8 +63,10 @@ class _ViewPanelState extends State<ViewPanel> {
 
   void addRandomPoint() {
     setState(() {
-      var p = Point(x:_random.nextDouble()*100,y:_random.nextDouble()*100);
-      graphicObjects.add(p);
+      for (var i = 0; i < 10; i++) {
+        var p = Point(x:_random.nextDouble()*100,y:_random.nextDouble()*100);
+        graphicObjects.add(p);
+      }
     });
   }
 
