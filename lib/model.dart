@@ -13,12 +13,21 @@ abstract class GraphicsObject {
 }
 
 @immutable
-class Point extends GraphicsObject {
+class Point with GraphicsObject {
   final num x;
   final num y;
   final num z;
 
-  Point({this.x: 0, this.y: 0, this.z: 0});
+  const Point({this.x: 0, this.y: 0, this.z: 0});
+
+  const Point.xyz(this.x, this.y, this.z);
+
+  const Point.xy(this.x, this.y) : z = 0;
+
+  const Point.origin()
+      : x = 0,
+        y = 0,
+        z = 0;
 
   /// Adds a [Vector] to a [Point]
   Point operator +(Vector vec) =>
@@ -56,6 +65,8 @@ class Point extends GraphicsObject {
 
   @override
   String toString() => "($x|$y|$z)";
+
+  static num Function(Point a, Point b) distanceFunction = (Point a, Point b) => (b-a).length;
 }
 
 @immutable
@@ -66,7 +77,15 @@ class Vector extends Matrix {
 
   num get z => _m[2][0];
 
+  /// The distance of this vector in 3d space
+  num get length => sqrt(x*x+y*y+z*z);
+
   Vector({x: 0, y: 0, z: 0}) : super.vector(x, y, z);
+
+  Vector.fromMatrix(Matrix matrix):
+      assert(matrix.height == 3),
+      assert(matrix.width == 1),
+      super.vector(matrix[0][0],matrix[1][0],matrix[2][0]);
 
   Vector operator +(Vector vec) =>
       Vector(x: x + vec.x, y: y + vec.y, z: z + vec.z);
@@ -78,7 +97,17 @@ class Vector extends Matrix {
 
   Vector rotateXY(num degree) {
     var rad = _degToRad(degree);
-    return this;
+    return Vector.fromMatrix(Matrix.rotationXY(rad)*this);
+  }
+
+  Vector rotateXZ(num degree) {
+    var rad = _degToRad(degree);
+    return Vector.fromMatrix(Matrix.rotationXZ(rad)*this);
+  }
+
+  Vector rotateYZ(num degree) {
+    var rad = _degToRad(degree);
+    return Vector.fromMatrix(Matrix.rotationYZ(rad)*this);
   }
 
   @override
@@ -114,7 +143,7 @@ class Matrix {
   /// The second access-index has to be smaller than the [width] of the
   /// [Matrix].
   _InnerMatrixHelper<num> operator [](int index) {
-    return _InnerMatrixHelper((index2) => _get(index,index2),
+    return _InnerMatrixHelper((index2) => _get(index, index2),
         (index2, value) => _set(index, index2, value));
   }
 
@@ -152,8 +181,20 @@ class Matrix {
             List.of([sin(theta), cos(theta), 0], growable: false),
             List.of([0, 0, 1], growable: false));
 
+  Matrix.rotationXZ(num theta)
+      : this.threeByThree(
+      List.of([cos(theta), 0, sin(theta)], growable: false),
+      List.of([0,1, 0], growable: false),
+      List.of([-sin(theta), 0, cos(theta)], growable: false));
+
+  Matrix.rotationYZ(num theta)
+      : this.threeByThree(
+      List.of([1,0,0], growable: false),
+      List.of([0,cos(theta),-sin(theta)], growable: false),
+      List.of([0,sin(theta), cos(theta)], growable: false));
+
   Matrix.threeByThree(List<num> top, List<num> mid, List<num> bot)
-      : assert(top.length != 3 || mid.length != 3 || bot.length != 3, false),
+      : assert(top.length == 3 && mid.length == 3 && bot.length == 3),
         _m = List.of([top, mid, bot], growable: false);
 
   Matrix.vector(num x, num y, num z)
@@ -165,7 +206,8 @@ class Matrix {
 
   Matrix.empty(int width, int height)
       : assert(width > 0 && height > 0),
-        _m = List.generate(height, (index) => List.filled(width, 0),growable: false);
+        _m = List.generate(height, (index) => List.filled(width, 0),
+            growable: false);
 
   /// Dot multiplication
   Matrix operator *(Matrix other) {
@@ -177,7 +219,8 @@ class Matrix {
       Dev.log("Row: $row - Column: $column - Value: $value");
       var a = this.getRow(row);
       var b = other.getColumn(column).toList();
-      var newVal = a.fold(0,(num value, num element) => value + element*b.removeAt(0));
+      var newVal = a.fold(
+          0, (num value, num element) => value + element * b.removeAt(0));
       assert(b.isEmpty);
       return newVal;
     });
@@ -186,10 +229,10 @@ class Matrix {
   }
 
   /// parses the whole [Matrix]
-  void forEach(void Function(int row,int column,num value) function) {
-    for(int row = 0; row < this.height; row++) {
-      for(int column = 0; column < this.width; column++){
-        function.call(row,column,this[row][column]);
+  void forEach(void Function(int row, int column, num value) function) {
+    for (int row = 0; row < this.height; row++) {
+      for (int column = 0; column < this.width; column++) {
+        function.call(row, column, this[row][column]);
       }
     }
   }
@@ -199,25 +242,26 @@ class Matrix {
   /// If [function] returns `null`, then the value will not be touched.
   /// If [function] returns a new [num]-value, then the old value will be
   /// overwritten.
-  void fillEach(num? Function(int row,int column,num value) function) {
-    for(int row = 0; row < this.height; row++) {
-      for(int column = 0; column < this.width; column++){
-        var newval = function.call(row,column,this[row][column]);
+  void fillEach(num? Function(int row, int column, num value) function) {
+    for (int row = 0; row < this.height; row++) {
+      for (int column = 0; column < this.width; column++) {
+        var newval = function.call(row, column, this[row][column]);
         if (newval != null) this[row][column] = newval;
       }
     }
   }
 
-  List<num> get values => _m.fold([],(value, element) => value..addAll(element));
+  List<num> get values =>
+      _m.fold([], (value, element) => value..addAll(element));
 
   @override
   String toString() {
     String s = "";
-    for(int i = 0; i < this.height; i++) {
-      for(int w = 0; w < this.width; w++) {
-       s += "${this[i][w]}\t";
+    for (int i = 0; i < this.height; i++) {
+      for (int w = 0; w < this.width; w++) {
+        s += "${this[i][w]}\t";
       }
-      s+= "\n";
+      s += "\n";
     }
     return s;
   }
