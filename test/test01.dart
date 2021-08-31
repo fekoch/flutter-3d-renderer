@@ -57,4 +57,14 @@ void main() {
     expect(matrixC.height, 2);
     expect(matrixC.values, [58, 64, 139, 154]);
   });
+
+  test("Basic tests for Vector-Rotation", () {
+    var pointA = Point.xyz(3, 4, 5);
+    var v = pointA - Point.origin();
+    var v2 = v.rotateXY(90);
+    var pointB = Point.origin() + v2;
+
+    expect(pointB, within(
+        from: Point.xyz(-4, 3, 5), distance: Math.pow(10, -12), distanceFunction:Point.distanceFunction));
+  });
 }
