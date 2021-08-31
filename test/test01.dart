@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:math' as Math;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:just_a_3d_renderer/model.dart';
@@ -26,34 +27,34 @@ void main() {
     expect(point2.toString(), "(-1|6|7)");
   });
 
-  test("Basic tests of matrix-multiplication",(){
+  test("Basic tests of matrix-multiplication", () {
     var matrixA = Matrix.empty(3, 2);
-    matrixA[0][0]=1;
-    matrixA[0][1]=2;
-    matrixA[0][2]=3;
-    matrixA[1][0]=4;
-    matrixA[1][1]=5;
-    matrixA[1][2]=6;
+    matrixA[0][0] = 1;
+    matrixA[0][1] = 2;
+    matrixA[0][2] = 3;
+    matrixA[1][0] = 4;
+    matrixA[1][1] = 5;
+    matrixA[1][2] = 6;
     log("A:");
     log(matrixA.toString());
-    expect(matrixA.values,[1,2,3,4,5,6]);
+    expect(matrixA.values, [1, 2, 3, 4, 5, 6]);
 
     var matrixB = Matrix.empty(2, 3);
-    matrixB[0][0]=7;
-    matrixB[0][1]=8;
-    matrixB[1][0]=9;
-    matrixB[1][1]=10;
-    matrixB[2][0]=11;
-    matrixB[2][1]=12;
+    matrixB[0][0] = 7;
+    matrixB[0][1] = 8;
+    matrixB[1][0] = 9;
+    matrixB[1][1] = 10;
+    matrixB[2][0] = 11;
+    matrixB[2][1] = 12;
     log("B:");
     log(matrixB.toString());
-    expect(matrixB.values,[7,8,9,10,11,12]);
+    expect(matrixB.values, [7, 8, 9, 10, 11, 12]);
 
     var matrixC = matrixA * matrixB;
     log("C:");
     log(matrixC.toString());
-    expect(matrixC.width,2);
-    expect(matrixC.height,2);
-    expect(matrixC.values,[58,64,139,154]);
+    expect(matrixC.width, 2);
+    expect(matrixC.height, 2);
+    expect(matrixC.values, [58, 64, 139, 154]);
   });
 }
